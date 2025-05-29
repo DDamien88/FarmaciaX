@@ -1,0 +1,44 @@
+@model farmaciaX.Models.Usuario
+
+@{
+	ViewData["Title"] = "Eliminar Usuario";
+}
+
+<h2>Eliminar Usuario</h2>
+<hr />
+
+<h4>¿Estás seguro que deseas eliminar este usuario?</h4>
+
+<div class="form-group">
+	<label>Nombre:</label>
+	<p class="form-control-plaintext">@Model.Nombre</p>
+</div>
+
+<div class="form-group">
+	<label>Apellido:</label>
+	<p class="form-control-plaintext">@Model.Apellido</p>
+</div>
+
+<div class="form-group">
+	<label>Email:</label>
+	<p class="form-control-plaintext">@Model.Email</p>
+</div>
+
+<div class="form-group">
+	<label>Rol:</label>
+	<p class="form-control-plaintext">@Model.RolNombre</p>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Avatar))
+{
+	<div class="form-group">
+		<label>Avatar:</label><br />
+		<img src="@Model.Avatar" width="120" class="img-thumbnail" />
+	</div>
+}
+
+<form asp-action="Eliminar" method="post">
+	<input type="hidden" asp-for="Id" />
+	<button type="submit" class="btn btn-danger">Eliminar</button>
+	<a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

@@ -1,0 +1,59 @@
+@model Cliente
+
+<h2>Detalle del Cliente</h2>
+
+<div>
+    <strong>Nombre:</strong> @Model.Nombre<br />
+    <strong>Email:</strong> @Model.Email<br />
+    <strong>Teléfono:</strong> @Model.Telefono<br />
+</div>
+
+<hr />
+
+<h3>Recetas</h3>
+@if (Model.Recetas != null && Model.Recetas.Any())
+{
+    foreach (var receta in Model.Recetas)
+    {
+        <div class="border p-2 mb-2">
+            <strong>Fecha de emisión:</strong> @receta.Fecha_Emision.ToShortDateString() <br />
+            <strong>Médico:</strong> @receta.Medico <br />
+            <strong>Productos:</strong>
+            <ul>
+                @foreach (var producto in receta.Productos)
+                {
+                    <li>@producto.Nombre</li>
+                }
+            </ul>
+        </div>
+    }
+}
+else
+{
+    <p>No hay recetas registradas.</p>
+}
+
+<hr />
+
+<h3>Ventas</h3>
+@if (Model.Ventas != null && Model.Ventas.Any())
+{
+    foreach (var venta in Model.Ventas)
+    {
+        <div class="border p-2 mb-2">
+            <strong>Fecha:</strong> @venta.Fecha.ToShortDateString() <br />
+            <strong>Total:</strong> $@venta.Total <br />
+            <strong>Productos:</strong>
+            <ul>
+                @foreach (var detalle in venta.VentaProductos)
+                {
+                    <li>@detalle.Producto.Nombre - Cantidad: @detalle.Cantidad</li>
+                }
+            </ul>
+        </div>
+    }
+}
+else
+{
+    <p>No hay ventas registradas.</p>
+} 

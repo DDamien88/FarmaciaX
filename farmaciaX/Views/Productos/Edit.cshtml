@@ -1,0 +1,70 @@
+@model farmaciaX.Models.Productos
+
+@{
+    ViewData["Title"] = "Editar Producto";
+}
+
+<h1>Editar producto</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit">
+            <input type="hidden" asp-for="Id" />
+
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Nombre" class="control-label"></label>
+                <input asp-for="Nombre" class="form-control" required />
+                <span asp-validation-for="Nombre" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Tipo" class="control-label"></label>
+                <input asp-for="Tipo" class="form-control" required />
+                <span asp-validation-for="Tipo" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Precio" class="control-label"></label>
+                <input asp-for="Precio" class="form-control" step="0.01" required />
+                <span asp-validation-for="Precio" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Cantidad_Stock" class="control-label"></label>
+                <input asp-for="Cantidad_Stock" class="form-control" required />
+                <span asp-validation-for="Cantidad_Stock" class="text-danger"></span>
+            </div>
+
+            <div class="form-group form-check">
+                <input asp-for="Requiere_Receta" class="form-check-input" />
+                <label asp-for="Requiere_Receta" class="form-check-label"></label>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Laboratorio" class="control-label"></label>
+                <input asp-for="Laboratorio" class="form-control" required />
+                <span asp-validation-for="Laboratorio" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Fecha_Vencimiento" class="control-label"></label>
+                <input asp-for="Fecha_Vencimiento" class="form-control" type="date" required />
+                <span asp-validation-for="Fecha_Vencimiento" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Guardar cambios" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

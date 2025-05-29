@@ -1,0 +1,141 @@
+@model farmaciaX.Models.Receta_Medica
+
+@{
+    var ltaClientes = ViewBag.Clientes as IList<farmaciaX.Models.Cliente> ?? new List<farmaciaX.Models.Cliente>();
+    var ltaProductos = ViewBag.Productos as IList<farmaciaX.Models.Productos> ?? new List<farmaciaX.Models.Productos>();
+    ViewData["Title"] = "Crear Receta";
+}
+
+<h2>Crear Receta</h2>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<form asp-action="Create" enctype="multipart/form-data" method="post">
+    <div class="form-group">
+        <label for="ClienteId">Cliente</label>
+        <select id="clienteId" name="ClienteId" class="form-control" required></select>
+        <span asp-validation-for="ClienteId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Medico" class="control-label"></label>
+        <input asp-for="Medico" class="form-control" required />
+        <span asp-validation-for="Medico" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Fecha_Emision" class="control-label">Fecha Emisión</label>
+        <input asp-for="Fecha_Emision" class="form-control" type="date" required />
+        <span asp-validation-for="Fecha_Emision" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Fecha_Vencimiento" class="control-label">Fecha Vencimiento</label>
+        <input asp-for="Fecha_Vencimiento" class="form-control" type="date" required />
+        <span asp-validation-for="Fecha_Vencimiento" class="text-danger"></span>
+    </div>
+
+
+    <!-- Contenedor de productos dinámicos -->
+    <div id="productos-container">
+
+    </div>
+
+    <!-- Botón para agregar -->
+    <button type="button" id="add-producto" class="btn btn-secondary btn-sm mt-2">Agregar producto</button>
+
+    <input type="hidden" name="ProductosJson" id="ProductosJson" />
+
+
+
+    <!-- Imagen -->
+    <div class="form-group">
+        <label asp-for="ImgRecetaFile" class="control-label">Imagen de la receta</label>
+        <input asp-for="ImgRecetaFile" class="form-control" type="file" required />
+        <span asp-validation-for="ImgRecetaFile" class="text-danger"></span>
+    </div>
+
+    <br />
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Select2 para clientes
+            $('#clienteId').select2({
+                placeholder: 'Buscar cliente...',
+                ajax: {
+                    url: '/api/clientes/buscar/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: params => ({ termino: params.term }),
+                    processResults: data => ({
+                        results: data.map(cliente => ({
+                            id: cliente.id,
+                            text: `${cliente.nombre} ${cliente.apellido} (${cliente.dni})`
+                        }))
+                    })
+                }
+            });
+        });
+
+        let productoIndex = 0;
+
+        function inicializarSelect2Producto(selector) {
+            $(selector).select2({
+                placeholder: 'Buscar producto...',
+                ajax: {
+                    url: '/api/productos/obtener-todos-los-productos/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: params => ({ termino: params.term }),
+                    processResults: data => ({
+                        results: data.map(p => ({
+                            id: p.id,
+                            text: `${p.nombre} - Precio: ${p.precio} - Stock: ${p.cantidad_Stock} - Requiere receta ${p.requiere_Receta ? "Sí" : "No"}`
+                        }))
+                    })
+                }
+            });
+        }
+
+        document.getElementById("add-producto").addEventListener("click", function () {
+            const container = document.getElementById("productos-container");
+            const row = document.createElement("div");
+            row.className = "producto-row mb-3";
+            row.innerHTML = `
+                            <div class="form-group">
+                                <label>Producto</label>
+                                <select name="Productos[${productoIndex}].ProductoId" class="form-control producto-select" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cantidad</label>
+                                <input type="number" name="Productos[${productoIndex}].Cantidad" class="form-control w-25 d-inline" placeholder="Cantidad" min="1" required />
+                                <button type="button" class="btn btn-danger btn-sm remove-producto">X</button>
+                            </div>
+                        `;
+            container.appendChild(row);
+            inicializarSelect2Producto(`select[name="Productos[${productoIndex}].ProductoId"]`);
+            productoIndex++;
+        });
+
+        document.addEventListener("click", function (e) {
+            if (e.target.classList.contains("remove-producto")) {
+                e.target.closest(".producto-row").remove();
+            }
+        });
+    </script>
+}

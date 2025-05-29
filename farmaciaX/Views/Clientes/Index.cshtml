@@ -1,0 +1,117 @@
+@{
+    ViewData["Title"] = "Clientes";
+}
+
+
+<h1>Listado de Clientes</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-success">Agregar nuevo cliente</a>
+</p>
+
+<div class="mb-3">
+    <input type="text" id="buscarClientes" class="form-control" placeholder="Buscar por nombre, apellido o DNI..." />
+</div>
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Mensaje"]
+    </div>
+}
+
+
+<table class="table table-striped table-bordered" id="tablaClientes">
+    <thead class="thead-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>DNI</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Se llenará con JS -->
+    </tbody>
+</table>
+
+<nav>
+    <ul class="pagination" id="paginadorClientes">
+        <!-- Se llena con JS -->
+    </ul>
+</nav>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let paginaActual = 1;
+
+            function cargarClientes(pagina = 1) {
+                const termino = $('#buscarClientes').val();
+
+                $.ajax({
+                    url: '/Clientes/Buscar',
+                    type: 'GET',
+                    data: { termino, pagina },
+                    success: function (response) {
+                        const tbody = $('#tablaClientes tbody');
+                        tbody.empty();
+
+                        if (response.clientes.length === 0) {
+                            tbody.append('<tr><td colspan="6">No se encontraron clientes.</td></tr>');
+                        } else {
+                            response.clientes.forEach(cliente => {
+                                const fila = `
+                                <tr>
+                                    <td>${cliente.nombre}</td>
+                                    <td>${cliente.apellido}</td>
+                                    <td>${cliente.dni}</td>
+                                    <td>${cliente.telefono}</td>
+                                    <td>${cliente.email}</td>
+                                    <td>
+                                        <a href="/Clientes/Edit/${cliente.id}" class="btn btn-sm btn-warning">Editar</a>
+                                        <a href="/Clientes/Details/${cliente.id}" class="btn btn-sm btn-info">Detalles</a>
+                                    </td>
+                                </tr>`;
+                                tbody.append(fila);
+                            });
+                        }
+
+                        // Construir paginador
+                        const totalPaginas = Math.ceil(response.total / 5);
+                        const paginador = $('#paginadorClientes');
+                        paginador.empty();
+
+                        for (let i = 1; i <= totalPaginas; i++) {
+                            paginador.append(`
+                            <li class="page-item ${i === pagina ? 'active' : ''}">
+                                <a class="page-link" href="#">${i}</a>
+                            </li>`);
+                        }
+
+                        paginaActual = pagina;
+                    }
+                });
+            }
+
+            // Búsqueda
+            $('#buscarClientes').on('input', function () {
+                cargarClientes(1);
+            });
+
+            // Clic en paginación
+            $('#paginadorClientes').on('click', 'a', function (e) {
+                e.preventDefault();
+                const paginaSeleccionada = parseInt($(this).text());
+                if (!isNaN(paginaSeleccionada)) {
+                    cargarClientes(paginaSeleccionada);
+                }
+            });
+
+            cargarClientes();
+        });
+    </Script>
+}

@@ -1,0 +1,97 @@
+@{
+    ViewData["Title"] = "Recetas Médicas";
+}
+
+<h1>Listado de Recetas</h1>
+
+<div class="mb-3">
+    <input type="text" id="buscarRecetas" class="form-control" placeholder="Buscar por cliente o médico..." />
+</div>
+
+<p>
+    <a asp-action="Create" class="btn btn-success">Agregar nueva receta</a>
+</p>
+
+<table class="table table-bordered" id="tablaRecetas">
+    <thead>
+        <tr>
+
+            <th>Cliente</th>
+            <th>Médico</th>
+            <th>Fecha Emisión</th>
+            <th>Fecha Vencimiento</th>
+            <th>Imagen</th>
+            <th>Activo</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Se llenará por JavaScript -->
+    </tbody>
+</table>
+
+<div id="paginacion" class="mt-3"></div>
+
+
+@section Scripts {
+
+    <script>
+        let paginaActual = 1;
+
+        function cargarRecetas(termino = '', pagina = 1) {
+            $.get('/Recetas/Buscar', { termino, page: pagina }, function (response) {
+                const tbody = $('#tablaRecetas tbody');
+                tbody.empty();
+
+                const data = response.recetas;
+                const total = response.totalRegistros;
+                const pageSize = response.pageSize;
+                const totalPaginas = Math.ceil(total / pageSize);
+
+                if (data.length === 0) {
+                    tbody.append('<tr><td colspan="8">No se encontraron recetas.</td></tr>');
+                } else {
+                    data.forEach(function (receta) {
+                        const imagen = receta.imgReceta
+                            ? `<img src="/Uploads/Recetas/${receta.imgReceta}" alt="Receta" style="height: 50px;" />`
+                            : 'Sin imagen';
+
+                        tbody.append(`
+                                    <tr>
+                                        <td>${receta.cliente}</td>
+                                        <td>${receta.medico}</td>
+                                        <td>${receta.fechaEmision}</td>
+                                        <td>${receta.fechaVencimiento}</td>
+                                        <td>${imagen}</td>
+                                        <td>${receta.activo ? "Sí" : "Procesada"}</td>
+                                        <td>
+                                            <a href="/Recetas/Edit/${receta.id}" class="btn btn-sm btn-warning">Editar</a>
+                                            <a href="/Uploads/Recetas/${receta.imgReceta}" class="btn btn-sm btn-info" target="_blank">Ver receta</a>
+                                            <a href="/Recetas/Activar/${receta.id}" class="btn btn-sm btn-success">Activar</a>
+                                        </td>
+                                    </tr>`);
+                    });
+                }
+
+                // Paginación
+                const paginacion = $('#paginacion');
+                paginacion.empty();
+                for (let i = 1; i <= totalPaginas; i++) {
+                    const clase = i === pagina ? 'btn-primary' : 'btn-outline-primary';
+                    paginacion.append(`<button class="btn ${clase} m-1 btn-sm" onclick="cargarRecetas($('#buscarRecetas').val(), ${i})">${i}</button>`);
+                }
+
+                paginaActual = pagina;
+            });
+        }
+
+        $(document).ready(function () {
+            $('#buscarRecetas').on('input', function () {
+                cargarRecetas($(this).val(), 1);
+            });
+
+            cargarRecetas();
+        });
+    </script>
+
+}

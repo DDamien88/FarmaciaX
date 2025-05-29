@@ -1,0 +1,176 @@
+@{
+    ViewData["Title"] = "Ventas";
+}
+
+<h1>Listado de Ventas</h1>
+
+<div class="mb-3">
+    <input type="text" id="buscarVentas" class="form-control" placeholder="Buscar por cliente..." />
+</div>
+
+<p>
+    <a asp-action="Create" class="btn btn-success">Crear Venta</a>
+</p>
+
+<form style="display:none">@Html.AntiForgeryToken()</form>
+
+<table class="table table-bordered" id="tablaVentas">
+    <thead>
+        <tr>
+
+            <th>Cliente</th>
+            <th>Fecha Venta</th>
+            <th>Fecha de emisión Receta</th>
+            <th>productos (cantidad)</th>
+            <th>Total</th>
+            <th>Activa</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Se llenará por JavaScript -->
+    </tbody>
+</table>
+
+
+<!-- Paginación -->
+<nav aria-label="Paginación">
+    <ul class="pagination justify-content-center">
+        <li class="page-item" :class="{ disabled: paginaActual === 1 }">
+            <button class="page-link" v-on:click="irPaginaAnterior()" :disabled="paginaActual === 1">&laquo;</button>
+        </li>
+
+        <li class="page-item" v-for="pagina in paginasTotales" :key="pagina"
+            :class="{ active: pagina === paginaActual }">
+            <button class="page-link" v-on:click="cambiarPagina(pagina)">{{ pagina }}</button>
+        </li>
+
+        <li class="page-item" :class="{ disabled: paginaActual === paginasTotales }">
+            <button class="page-link" v-on:click="irPaginaSiguiente()"
+                :disabled="paginaActual === paginasTotales">&raquo;</button>
+        </li>
+    </ul>
+</nav>
+
+
+@section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        let paginaActual = 1;
+        const pageSize = 5;
+        let totalItems = 0;
+        let terminoBusqueda = '';
+
+        function cargarVentas() {
+            $.get('/Ventas/Buscar', { termino: terminoBusqueda, page: paginaActual, pageSize }, function (data) {
+                const tbody = $('#tablaVentas tbody');
+                tbody.empty();
+
+                if (data.ventas.length === 0) {
+                    tbody.append('<tr><td colspan="4">No se encontraron ventas.</td></tr>');
+                } else {
+                    data.ventas.forEach(v => {
+                        const fechaReceta = v.fechaReceta ? new Date(v.fechaReceta).toLocaleDateString() : '—';
+                        const productosTexto = v.productos && v.productos.length > 0
+                            ? v.productos.map(p => `${p.nombre} (${p.cantidad})`).join('<br>')
+                            : '—';
+
+                        tbody.append(`
+                                                        <tr>
+                                                            <td>${v.cliente}</td>
+                                                            <td>${new Date(v.fecha).toLocaleDateString()}</td>
+                                                            <td>${fechaReceta}</td>
+                                                            <td>${productosTexto}</td>
+                                                            <td>$ ${v.total.toFixed(2)}</td>
+                                                            <td>${v.activo ? "Realizada con éxito" : "Anulada"}</td>
+                                                            <td>
+                                                                <button class="btn btn-sm btn-danger" onclick="anularVenta(${v.id})">Anular</button>
+                                                                <a href="/Ventas/Details/${v.id}" class="btn btn-sm btn-info">Detalles de venta</a>
+                                                            </td>
+                                                        </tr>
+                                                    `);
+                    });
+
+                }
+
+                totalItems = data.totalItems;
+                renderizarPaginacion();
+            });
+        }
+
+        function renderizarPaginacion() {
+            const totalPaginas = Math.ceil(totalItems / pageSize);
+            const paginacion = $('.pagination');
+            paginacion.empty();
+
+            paginacion.append(`
+                                                                    <li class="page-item ${paginaActual === 1 ? 'disabled' : ''}">
+                                                                        <button class="page-link" onclick="cambiarPagina(${paginaActual - 1})">&laquo;</button>
+                                                                    </li>
+                                                                `);
+
+            for (let i = 1; i <= totalPaginas; i++) {
+                paginacion.append(`
+                                                                        <li class="page-item ${i === paginaActual ? 'active' : ''}">
+                                                                            <button class="page-link" onclick="cambiarPagina(${i})">${i}</button>
+                                                                        </li>
+                                                                    `);
+            }
+
+            paginacion.append(`
+                                                                    <li class="page-item ${paginaActual === totalPaginas ? 'disabled' : ''}">
+                                                                        <button class="page-link" onclick="cambiarPagina(${paginaActual + 1})">&raquo;</button>
+                                                                    </li>
+                                                                `);
+        }
+        function anularVenta(id) {
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: "Esta acción anulará la venta",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, anular',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Ventas/AnularVenta',
+                        method: 'POST',
+                        data: {
+                            ventaId: id,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function () {
+                            Swal.fire('Anulada', 'La venta ha sido anulada.', 'success');
+                            cargarVentas();
+                        },
+                        error: function () {
+                            Swal.fire('Error', 'Ocurrió un error al anular la venta.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+
+
+        function cambiarPagina(nuevaPagina) {
+            paginaActual = nuevaPagina;
+            cargarVentas();
+        }
+
+        $(document).ready(function () {
+            $('#buscarVentas').on('input', function () {
+                terminoBusqueda = $(this).val();
+                paginaActual = 1;
+                cargarVentas();
+            });
+
+            cargarVentas();
+        });
+    </script>
+}

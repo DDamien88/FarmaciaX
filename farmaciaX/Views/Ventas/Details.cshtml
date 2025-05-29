@@ -1,0 +1,74 @@
+@model farmaciaX.Models.Ventas
+
+@{
+    ViewData["Title"] = "Detalle de Venta";
+}
+
+<h2>Detalle de Venta</h2>
+
+<div class="mb-3">
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Venta N° @Model.Id</h4>
+        <p><strong>Cliente:</strong>
+            @(Model.Cliente != null ? $"{Model.Cliente.NombreCompleto} ({Model.Cliente.Email})" : "Venta sin cliente")
+        </p>
+        <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
+        <p><strong>Total:</strong> $ @Model.Total.ToString("F2")</p>
+        <p><strong>Estado:</strong> @(Model.Activo ? "Realizada" : "Anulada")</p>
+
+        @if (Model.Receta != null)
+        {
+            <p><strong>Receta:</strong> Emitida el @Model.Receta.Fecha_Emision.ToString("dd/MM/yyyy")</p>
+        }
+
+        <p><strong>Registrada por:</strong> @Model.UsuarioAlta.Nombre (@Model.UsuarioAlta.Email)</p>
+    </div>
+</div>
+
+<hr />
+
+<h4>Productos vendidos</h4>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Precio Unitario</th>
+            <th>Cantidad</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var detalle in Model.VentaProductos)
+        {
+            <tr>
+                <td>@detalle.Producto?.Nombre</td>
+                <td>$ @detalle.Producto?.Precio.ToString("F2")</td>
+                <td>@detalle.Cantidad</td>
+                <td>$ @detalle.SubTotal.ToString("F2")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4>Pagos</h4>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Monto</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pago in Model.Pagos)
+        {
+            <tr>
+                <td>@pago.FechaPago.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>$ @pago.Monto.ToString("F2")</td>
+            </tr>
+        }
+    </tbody>
+</table>

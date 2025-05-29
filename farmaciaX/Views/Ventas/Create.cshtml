@@ -1,0 +1,291 @@
+@model farmaciaX.Models.Ventas
+
+@{
+    ViewData["Title"] = "Crear Venta";
+}
+
+<h2>Crear Venta</h2>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="form-group">
+        <label for="clienteId">Cliente</label>
+        <select id="clienteId" name="Cliente_Id" class="form-control"></select>
+    </div>
+
+    <div id="clienteSeleccionado" class="mb-3 alert alert-info d-none"></div>
+
+    <div class="mb-3">
+        <input type="text" id="buscarReceta" class="form-control" placeholder="Buscar receta por médico..." disabled />
+        <ul id="sugerenciasRecetas" class="list-group"></ul>
+    </div>
+
+    <div id="recetaSeleccionada" class="mb-3 alert alert-info d-none"></div>
+    <input type="hidden" name="RecetaId" id="RecetaId" />
+
+    <h4>Productos</h4>
+    <div id="productos-container"></div>
+    <button type="button" id="add-producto" class="btn btn-secondary btn-sm mt-2">Agregar producto</button>
+
+    <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#modalPago">Registrar
+        Pago</button>
+
+    <h4>Pagos Registrados</h4>
+    <div id="listaPagos" class="mb-3"></div>
+
+    <input type="hidden" id="cantidadPagos" name="CantidadPagos" value="0" />
+
+    <div class="mt-3">
+        <h5>Total de la venta: $<span id="totalVenta">0.00</span></h5>
+    </div>
+
+    <h5>Total pagado: $<span id="totalPagado">0.00</span></h5>
+    <h5>Saldo restante: $<span id="saldoRestante">0.00</span></h5>
+
+
+
+    <button type="submit" class="btn btn-success mt-3">Guardar Venta</button>
+    <a asp-action="Index" class="btn btn-secondary mt-3">Cancelar</a>
+</form>
+
+<!-- Modal de Pago -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalPagoLabel">Registrar Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="montoPago">Monto</label>
+                    <input type="number" step="0.01" name="Pago.Monto" id="montoPago" class="form-control" required />
+                </div>
+                <div class="form-group mt-2">
+                    <label for="metodoPago">Método de Pago</label>
+                    <select name="Pagos[0].MetodoPago" id="metodoPago" class="form-control">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia">Débito/Transferencia/Tarjeta de crédito</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Guardar Pago</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function formatearFecha(fechaStr) {
+            const fecha = new Date(fechaStr);
+            return fecha.toLocaleDateString('es-AR', {
+                year: 'numeric', month: '2-digit', day: '2-digit'
+            });
+        }
+        let pagos = [];
+        let pagoIndex = 0;
+
+        $(document).ready(function () {
+            let productoIndex = 0;
+
+
+            $(document).on('input', '.cantidad-producto', function () {
+                calcularTotal();
+                actualizarPagosYSaldo();
+            });
+
+            $('#clienteId').select2({
+                placeholder: 'Buscar cliente...',
+                ajax: {
+                    url: '/api/clientes/buscar/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: params => ({ termino: params.term }),
+                    processResults: data => ({
+                        results: data.map(c => ({ id: c.id, text: `${c.nombre} ${c.apellido} (${c.dni})` }))
+                    })
+                }
+            });
+
+            $('#clienteId').on('select2:select', function (e) {
+                const cliente = e.params.data;
+                $('#clienteSeleccionado')
+                    .removeClass('d-none')
+                    .html(`Cliente seleccionado: ${cliente.text}`);
+                $('#buscarReceta').prop('disabled', false);
+            });
+
+            $('#buscarReceta').on('input', function () {
+                const termino = $(this).val();
+                const clienteId = $('#clienteId').val();
+                if (!termino || !clienteId) return;
+
+                $.get(`/Recetas/BuscarRec/${clienteId}`, function (data) {
+                    const $sugerencias = $('#sugerenciasRecetas').empty();
+                    data.forEach(r => {
+                        const li = $(`<li class="list-group-item">Médico: ${r.medico} - Emisión: ${formatearFecha(r.fecha_Emision)} - Vencimiento: ${formatearFecha(r.fecha_Vencimiento)}</li>`);
+                        li.on('click', function () {
+                            $('#recetaSeleccionada')
+                                .removeClass('d-none')
+                                .html(`Receta del médico: ${r.medico}<br>Emisión: ${formatearFecha(r.fecha_Emision)} - Vencimiento: ${formatearFecha(r.fecha_Vencimiento)}`);
+                            $('#RecetaId').val(r.id);
+                            $sugerencias.empty();
+                            cargarProductosDeReceta(r.id);
+                        });
+                        $sugerencias.append(li);
+                    });
+                });
+            });
+
+            function cargarProductosDeReceta(recetaId) {
+                $.get(`/api/ApiRecetas/${recetaId}/productos/`, function (productos) {
+                    const container = $('#productos-container').empty();
+                    productos.forEach((p, i) => {
+                        const item = $(`
+                                            <div class="form-group producto-item">
+                                                <label>${p.nombre} - Laboratorio: (${p.laboratorio}) Precio: $<span class="precio-unitario">${p.precio}</span> Stock: (${p.cantidad_Stock})</label>
+                                                <input type="number" name="VentaProductos[${i}].Cantidad" value="${p.cantidad}" min="1" class="form-control cantidad-producto" data-precio="${p.precio}" />
+                                                <input type="hidden" name="VentaProductos[${i}].ProductoId" value="${p.id}" />
+                                            </div>
+                                        `);
+                        container.append(item);
+                    });
+                    productoIndex = productos.length;
+                    calcularTotal();
+                    actualizarPagosYSaldo();
+                });
+            }
+
+            function inicializarSelect2Producto(selector) {
+                $(selector).select2({
+                    placeholder: 'Buscar producto...',
+                    ajax: {
+                        url: '/api/productos/obtener-todos-los-productos/',
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({ termino: params.term }),
+                        processResults: data => ({
+                            results: data.map(p => ({
+                                id: p.id,
+                                text: `${p.nombre} - Precio: ${p.precio} - Stock: ${p.cantidad_Stock} - Requiere receta ${p.requiere_Receta ? "Sí" : "No"}`
+                            }))
+                        })
+                    }
+                });
+            }
+            $(document).on('select2:select', '.producto-select', function (e) {
+                const selectedOption = e.params.data;
+                const select = $(this);
+                const precio = parseFloat((selectedOption.text.match(/Precio: ([\d.]+)/) || [])[1]) || 0;
+
+                // Buscar el input de cantidad dentro del mismo producto-row y asignar el data-precio
+                const inputCantidad = select.closest('.producto-row').find('.cantidad-producto');
+                inputCantidad.attr('data-precio', precio);
+
+                calcularTotal();
+            });
+
+
+            document.getElementById("add-producto").addEventListener("click", function () {
+                const container = document.getElementById("productos-container");
+                const row = document.createElement("div");
+                row.className = "producto-row mb-3";
+                row.innerHTML = `
+                                    <div class="form-group">
+                                        <label>Producto</label>
+                                        <select name="VentaProductos[${productoIndex}].ProductoId" class="form-control producto-select" required></select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Cantidad</label>
+                                        <input type="number" name="VentaProductos[${productoIndex}].Cantidad" class="form-control w-25 d-inline cantidad-producto" placeholder="Cantidad" min="1" required data-precio="0" />
+                                        <button type="button" class="btn btn-danger btn-sm remove-producto">X</button>
+                                    </div>
+                                `;
+
+                container.appendChild(row);
+                inicializarSelect2Producto(`select[name="VentaProductos[${productoIndex}].ProductoId"]`);
+                productoIndex++;
+            });
+
+            document.addEventListener("click", function (e) {
+                if (e.target.classList.contains("remove-producto")) {
+                    e.target.closest(".producto-row").remove();
+                    calcularTotal();
+                    actualizarPagosYSaldo();
+                }
+            });
+
+            document.querySelector('#modalPago .btn-primary').addEventListener('click', function () {
+                const monto = parseFloat(document.getElementById('montoPago').value);
+                const metodo = document.getElementById('metodoPago').value;
+
+                if (isNaN(monto) || monto <= 0) {
+                    alert("Monto inválido");
+                    return;
+                }
+
+                const pagoHtml = `
+                                    <div class="form-group border rounded p-2 mb-2">
+                                        <strong>Pago ${pagoIndex + 1}:</strong> Monto: $${monto.toFixed(2)}, Método: ${metodo}
+                                        <input type="hidden" name="Pagos[${pagoIndex}].Monto" value="${monto}" />
+                                        <input type="hidden" name="Pagos[${pagoIndex}].MetodoPago" value="${metodo}" />
+                                    </div>
+                                `;
+
+                $('#listaPagos').append(pagoHtml);
+                pagos.push({ monto, metodo });
+                pagoIndex++;
+
+                actualizarPagosYSaldo();
+
+                // Limpiar inputs del modal
+                document.getElementById('montoPago').value = '';
+                document.getElementById('metodoPago').selectedIndex = 0;
+            });
+        });
+
+        function calcularTotal() {
+            let total = 0;
+            document.querySelectorAll('.cantidad-producto').forEach(input => {
+                const cantidad = parseFloat(input.value) || 0;
+                const precio = parseFloat(input.getAttribute('data-precio')) || 0;
+                total += cantidad * precio;
+            });
+            document.getElementById('totalVenta').innerText = total.toFixed(2);
+        }
+
+        function actualizarPagosYSaldo() {
+            let totalPagado = pagos.reduce((sum, p) => sum + p.monto, 0);
+            document.getElementById('totalPagado').innerText = totalPagado.toFixed(2);
+
+            const totalVenta = parseFloat(document.getElementById('totalVenta').innerText) || 0;
+            const saldo = totalVenta - totalPagado;
+
+            const saldoElem = document.getElementById('saldoRestante');
+            saldoElem.innerText = saldo.toFixed(2);
+
+            if (saldo <= 0) {
+                saldoElem.style.color = 'green';
+            } else {
+                saldoElem.style.color = 'red';
+            }
+        }
+    </script>
+}

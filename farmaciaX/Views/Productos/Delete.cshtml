@@ -1,0 +1,51 @@
+@model farmaciaX.Models.Productos
+
+@{
+    ViewData["Title"] = "Eliminar Producto";
+}
+
+<h1>Eliminar Producto</h1>
+
+<h4>¿Estás seguro que deseas dar de baja este producto?</h4>
+<hr />
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">Nombre</dt>
+        <dd class="col-sm-10">@Model.Nombre</dd>
+
+        <dt class="col-sm-2">Tipo</dt>
+        <dd class="col-sm-10">@Model.Tipo</dd>
+
+        <dt class="col-sm-2">Precio</dt>
+        <dd class="col-sm-10">$@Model.Precio.ToString("F2")</dd>
+
+        <dt class="col-sm-2">Stock</dt>
+        <dd class="col-sm-10">@Model.Cantidad_Stock</dd>
+
+        <dt class="col-sm-2">Requiere Receta</dt>
+        <dd class="col-sm-10">@if(Model.Requiere_Receta == true || Model.Activo == false){
+            @(Model.Requiere_Receta ? "Sí" : "No" )
+                        }
+
+        </dd>
+        <dt class="col-sm-2">Laboratorio</dt>
+        <dd class="col-sm-10">@Model.Laboratorio</dd>
+
+        <dt class="col-sm-2">Fecha Vencimiento</dt>
+        <dd class="col-sm-10">@Model.Fecha_Vencimiento.ToString("dd/MM/yyyy")</dd>
+
+        <dt class="col-sm-2">Activo</dt>
+        <dd class="col-sm-10">@if (Model.Activo == true || Model.Activo == false)
+                        {
+                @(Model.Activo ? "Sí" : "No")
+            ;
+            }
+        </dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
