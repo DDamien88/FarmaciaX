@@ -1,8 +1,69 @@
 ﻿@{
-    ViewData["Title"] = "Página de bienvenida";
+    ViewData["Title"] = "Bienvenido al Sistema de Farmacia";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    body {
+        background-color: rgb(31, 112, 85);
+    }
+    .display-4{
+        color: #ffffff;
+    }
+    .lead{
+        color: #ffffff;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="text-center">
+        <h1 class="display-4">¡Bienvenidos!</h1>
+        <p class="lead">Gestione productos, recetas, clientes y ventas de manera eficiente.</p>
+    </div>
+
+
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card border-warning shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Clientes</h5>
+                    <p class="card-text">Gestione sus clientes. Altas y modificaciones.</del>
+                    </p>
+                    <a href="@Url.Action("Index", "Clientes")" class="btn btn-success">Ir a clientes</a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-3">
+            <div class="card border-success shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Productos</h5>
+                    <p class="card-text">Administre el stock y detalles de los productos en la farmacia.
+                    </p>
+                    <a href="@Url.Action("Index", "Productos")" class="btn btn-success">Ir a Productos</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-info shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Ventas</h5>
+                    <p class="card-text">Cree nuevas ventas, consulte historial y gestione anulaciones.</p>
+                    <a href="@Url.Action("Index", "Ventas")" class="btn btn-info">Ir a Ventas</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Recetas</h5>
+                    <p class="card-text">Visualice y registre recetas médicas asociadas a los clientes.</p>
+                    <a href="@Url.Action("Index", "Recetas")" class="btn btn-primary">Ir a Recetas</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
