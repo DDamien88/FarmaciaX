@@ -64,15 +64,48 @@ namespace farmaciaX.Models
         }
 
 
-        public Productos? BuscarPorId(int id)
+        public Productos BuscarPorId(int id)
         {
-            Productos? producto = null;
+            Productos producto = null;
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = "SELECT id, nombre, tipo, precio, cantidad_stock, requiere_receta, laboratorio, fecha_vencimiento, activo FROM productos WHERE id = @id";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);
+                    connection.Open();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            producto = new Productos
+                            {
+                                Id = reader.GetInt32("id"),
+                                Nombre = reader.GetString("nombre"),
+                                Tipo = reader.GetString("tipo"),
+                                Precio = (decimal)(float)reader.GetDecimal("precio"),
+                                Cantidad_Stock = reader.GetInt32("cantidad_stock"),
+                                Requiere_Receta = reader.GetBoolean("requiere_receta"),
+                                Laboratorio = reader.GetString("laboratorio"),
+                                Fecha_Vencimiento = reader.GetDateTime("fecha_vencimiento"),
+                                Activo = reader.GetBoolean("activo")
+                            };
+                        }
+                    }
+                }
+            }
+            return producto;
+        }
+
+        public Productos BuscarPorNombre(string nombre)
+        {
+            Productos producto = null;
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = "SELECT id, nombre, tipo, precio, cantidad_stock, requiere_receta, laboratorio, fecha_vencimiento, activo FROM productos WHERE nombre = @nombre";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@nombre", nombre);
                     connection.Open();
                     using (var reader = command.ExecuteReader())
                     {

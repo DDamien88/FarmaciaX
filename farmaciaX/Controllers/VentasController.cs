@@ -24,9 +24,9 @@ namespace farmaciaX.Controllers
         private readonly IRepositorioProductos repositorioProductos;
         private readonly IRepositorioUsuario repositorioUsuario;
 
-        private readonly IRepositorioRecetaProductos repositorioRecetaProductos;
+        private readonly IRepositorioRecetaProducto repositorioRecetaProductos;
 
-        public VentasController(IRepositorioReceta_Medica repositorio, IWebHostEnvironment env, IRepositorioCliente repositorioCliente, DataContext context, IRepositorioVentas repositorioVentas, IRepositorioDetalleVentas repositorioDetalleVentas, IRepositorioProductos repositorioProductos, IRepositorioUsuario repositorioUsuario, IRepositorioRecetaProductos repositorioRecetaProductos)
+        public VentasController(IRepositorioReceta_Medica repositorio, IWebHostEnvironment env, IRepositorioCliente repositorioCliente, DataContext context, IRepositorioVentas repositorioVentas, IRepositorioDetalleVentas repositorioDetalleVentas, IRepositorioProductos repositorioProductos, IRepositorioUsuario repositorioUsuario, IRepositorioRecetaProducto repositorioRecetaProductos)
         {
             this.repositorio = repositorio;
             this.env = env;
@@ -49,17 +49,7 @@ namespace farmaciaX.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            try
-            {
-                ViewBag.Clientes = repositorioCliente.ObtenerTodos();
-                ViewBag.Productos = repositorioProductos.ObtenerTodos();
-                return View();
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Error = ex.Message;
-                return View();
-            }
+            return View();
         }
 
         //Post create ventas
@@ -69,6 +59,7 @@ namespace farmaciaX.Controllers
         {
             try
             {
+
                 var email = User.Identity.Name;
                 var usuario = repositorioUsuario.ObtenerPorEmail(email);
                 if (usuario == null)
@@ -76,7 +67,7 @@ namespace farmaciaX.Controllers
                     return BadRequest("No se encontró el usuario autenticado.");
                 }
 
-                if (venta.VentaProductos == null || !venta.VentaProductos.Any())
+                if (venta.VentaProductos == null)
                 {
                     ModelState.AddModelError("", "Debe incluir al menos un producto.");
                     return View(venta);
@@ -143,10 +134,21 @@ namespace farmaciaX.Controllers
 
                 }
 
+                if (venta.RecetaId.HasValue)
+                {
+                    var receta = context.Receta.Find(venta.RecetaId);
+                    if (receta.Fecha_Vencimiento < DateTime.Now)
+                    {
+                        ModelState.AddModelError("", "La receta médica ha caducado.");
+                        return View(venta);
+                    }
+                }
+
                 venta.Total = totalVenta;
                 venta.Fecha = DateTime.Now;
                 venta.UsuarioAltaId = usuario.Id;
                 venta.Activo = true;
+                venta.UsuarioBajaId = null;
 
                 // Dar de baja a la receta (si aplica)
                 if (venta.RecetaId != null)
@@ -267,6 +269,13 @@ namespace farmaciaX.Controllers
         [Authorize(Roles = "Administrador")]
         public IActionResult AnularVenta(int ventaId)
         {
+            var email = User.Identity.Name;
+            var usuario = repositorioUsuario.ObtenerPorEmail(email);
+            if (usuario == null)
+            {
+                return BadRequest("No se encontró el usuario autenticado.");
+            }
+
             var venta = context.Ventas
                 .Include(v => v.VentaProductos)
                     .ThenInclude(vp => vp.Producto)
@@ -278,24 +287,8 @@ namespace farmaciaX.Controllers
                 return BadRequest("La venta ya ha sido anulada.");
             }
 
-            // Restaurar stock de los productos
-            foreach (var detalle in venta.VentaProductos)
-            {
-                detalle.Producto.Cantidad_Stock += detalle.Cantidad;
-                if (detalle.Producto.Cantidad_Stock > 0)
-                {
-                    detalle.Producto.Activo = true;
-                }
-
-            }
-
-            // Reactivar receta si existía
-            if (venta.Receta != null)
-            {
-                venta.Receta.Activo = true;
-            }
-
             venta.Activo = false;
+            venta.UsuarioBajaId = usuario.Id;
 
             context.SaveChanges();
 
@@ -313,6 +306,7 @@ namespace farmaciaX.Controllers
         .Include(v => v.Pagos)
         .Include(v => v.Receta)
         .Include(v => v.UsuarioAlta)
+        .Include(v => v.UsuarioBaja)
         .FirstOrDefault(v => v.Id == id);
 
             if (venta == null)

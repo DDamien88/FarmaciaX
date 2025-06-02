@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 
 namespace farmaciaX.Models
 {
@@ -27,14 +26,15 @@ namespace farmaciaX.Models
         public IFormFile? ImgRecetaFile { get; set; }
 
         public bool Activo { get; set; }
-        public List<RecetaProductos> RecetaProductos { get; set; } = new List<RecetaProductos>();
+        public List<RecetaProducto> RecetaProductos { get; set; } = new List<RecetaProducto>();
+        
         [NotMapped]
         public List<Productos> Productos { get; set; } = new List<Productos>();
 
 
         public override string ToString()
         {
-            return $"Id: {Id}, ClienteId: {ClienteId}, Medico: {Medico}, Fecha_Emision: {Fecha_Emision}, Fecha_Vencimiento: {Fecha_Vencimiento}, ImgReceta: {ImgReceta}";
+            return $"Id: {Id}, ClienteId: {ClienteId}, Medico: {Medico}, Fecha_Emision: {Fecha_Emision}, Fecha_Vencimiento: {Fecha_Vencimiento}";
         }
     }
 }

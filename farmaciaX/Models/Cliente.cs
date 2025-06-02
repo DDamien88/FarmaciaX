@@ -24,7 +24,7 @@ namespace farmaciaX.Models
 
         [Required]
         [StringLength(20, ErrorMessage = "El teléfono no puede tener más de 20 caracteres.")]
-        [RegularExpression(@"^[0-9]+$", ErrorMessage = "Solo se permiten números.")]
+        [RegularExpression(@"^[0-9]+$", ErrorMessage = "Solo se permiten números. Tampoco espacios.")]
         public string Telefono { get; set; }
 
 

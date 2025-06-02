@@ -27,7 +27,7 @@ builder.Services.AddControllersWithViews();
 // Registrar repositorios
 builder.Services.AddScoped<IRepositorioCliente, RepositorioCliente>();
 builder.Services.AddScoped<IRepositorioProductos, RepositorioProductos>();
-builder.Services.AddScoped<IRepositorioRecetaProductos, RepositorioRecetaProductos>();
+builder.Services.AddScoped<IRepositorioRecetaProducto, RepositorioRecetaProducto>();
 builder.Services.AddScoped<IRepositorioReceta_Medica, RepositorioReceta_Medica>();
 builder.Services.AddScoped<IRepositorioVentas, RepositorioVentas>();
 builder.Services.AddScoped<IRepositorioDetalleVentas, RepositorioDetalleVentas>();

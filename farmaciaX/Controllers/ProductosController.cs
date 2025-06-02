@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using farmaciaX.Models;
-using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.AspNetCore.Authorization;
 
 namespace farmaciaX.Controllers
@@ -24,7 +23,7 @@ namespace farmaciaX.Controllers
 
 
         //Get: Productos/Create
-        public IActionResult Create()
+        /*public IActionResult Create()
         {
             return View();
         }
@@ -105,7 +104,7 @@ namespace farmaciaX.Controllers
                 repositorio.Modificar(producto);
             }
             return Json(new { success = true });
-        }
+        }*/
 
 
 

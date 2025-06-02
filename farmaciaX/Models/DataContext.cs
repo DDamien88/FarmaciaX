@@ -15,7 +15,7 @@ namespace farmaciaX.Models
         public DbSet<Ventas> Ventas { get; set; }
         public DbSet<DetalleVentas> DetalleVentas { get; set; }
 
-        public DbSet<RecetaProductos> RecetaProductos { get; set; }
+        public DbSet<RecetaProducto> RecetaProductos { get; set; }
         public DbSet<Pago> Pagos { get; set; }
 
         public DbSet<Usuario> Usuarios { get; set; }
@@ -37,7 +37,7 @@ namespace farmaciaX.Models
                 .HasForeignKey(d => d.Venta_Id)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<RecetaProductos>()
+            modelBuilder.Entity<RecetaProducto>()
                 .HasKey(rp => new { rp.RecetaId, rp.ProductoId });
 
 

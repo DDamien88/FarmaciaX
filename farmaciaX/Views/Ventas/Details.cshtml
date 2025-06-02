@@ -26,6 +26,10 @@
         }
 
         <p><strong>Registrada por:</strong> @Model.UsuarioAlta.Nombre (@Model.UsuarioAlta.Email)</p>
+        @if (!Model.Activo && Model.UsuarioBaja != null)
+        {
+            <p><strong>Anulada por:</strong> @Model.UsuarioBaja.Nombre (@Model.UsuarioBaja.Email)</p>
+        }
     </div>
 </div>
 

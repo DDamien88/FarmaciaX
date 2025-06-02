@@ -21,10 +21,13 @@
         </div>
     }
 
+
     <div class="form-group">
         <label for="clienteId">Cliente</label>
-        <select id="clienteId" name="Cliente_Id" class="form-control"></select>
+        <select id="clienteId" name="Cliente_Id" class="form-control">
+        </select>
     </div>
+
 
     <div id="clienteSeleccionado" class="mb-3 alert alert-info d-none"></div>
 
@@ -92,6 +95,8 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         function formatearFecha(fechaStr) {
             const fecha = new Date(fechaStr);
@@ -159,12 +164,12 @@
                     const container = $('#productos-container').empty();
                     productos.forEach((p, i) => {
                         const item = $(`
-                                            <div class="form-group producto-item">
-                                                <label>${p.nombre} - Laboratorio: (${p.laboratorio}) Precio: $<span class="precio-unitario">${p.precio}</span> Stock: (${p.cantidad_Stock})</label>
-                                                <input type="number" name="VentaProductos[${i}].Cantidad" value="${p.cantidad}" min="1" class="form-control cantidad-producto" data-precio="${p.precio}" />
-                                                <input type="hidden" name="VentaProductos[${i}].ProductoId" value="${p.id}" />
-                                            </div>
-                                        `);
+                                                                    <div class="form-group producto-item">
+                                                                        <label>${p.nombre} - Laboratorio: (${p.laboratorio}) Precio: $<span class="precio-unitario">${p.precio}</span> Stock: (${p.cantidad_Stock})</label>
+                                                                        <input type="number" name="VentaProductos[${i}].Cantidad" value="${p.cantidad}" min="1" class="form-control cantidad-producto" data-precio="${p.precio}" />
+                                                                        <input type="hidden" name="VentaProductos[${i}].ProductoId" value="${p.id}" />
+                                                                    </div>
+                                                                `);
                         container.append(item);
                     });
                     productoIndex = productos.length;
@@ -208,16 +213,16 @@
                 const row = document.createElement("div");
                 row.className = "producto-row mb-3";
                 row.innerHTML = `
-                                    <div class="form-group">
-                                        <label>Producto</label>
-                                        <select name="VentaProductos[${productoIndex}].ProductoId" class="form-control producto-select" required></select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Cantidad</label>
-                                        <input type="number" name="VentaProductos[${productoIndex}].Cantidad" class="form-control w-25 d-inline cantidad-producto" placeholder="Cantidad" min="1" required data-precio="0" />
-                                        <button type="button" class="btn btn-danger btn-sm remove-producto">X</button>
-                                    </div>
-                                `;
+                                                            <div class="form-group">
+                                                                <label>Producto</label>
+                                                                <select name="VentaProductos[${productoIndex}].ProductoId" class="form-control producto-select" required></select>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label>Cantidad</label>
+                                                                <input type="number" name="VentaProductos[${productoIndex}].Cantidad" class="form-control w-25 d-inline cantidad-producto" placeholder="Cantidad" min="1" required data-precio="0" />
+                                                                <button type="button" class="btn btn-danger btn-sm remove-producto">X</button>
+                                                            </div>
+                                                        `;
 
                 container.appendChild(row);
                 inicializarSelect2Producto(`select[name="VentaProductos[${productoIndex}].ProductoId"]`);
@@ -242,12 +247,12 @@
                 }
 
                 const pagoHtml = `
-                                    <div class="form-group border rounded p-2 mb-2">
-                                        <strong>Pago ${pagoIndex + 1}:</strong> Monto: $${monto.toFixed(2)}, Método: ${metodo}
-                                        <input type="hidden" name="Pagos[${pagoIndex}].Monto" value="${monto}" />
-                                        <input type="hidden" name="Pagos[${pagoIndex}].MetodoPago" value="${metodo}" />
-                                    </div>
-                                `;
+                                                            <div class="form-group border rounded p-2 mb-2">
+                                                                <strong>Pago ${pagoIndex + 1}:</strong> Monto: $${monto.toFixed(2)}, Método: ${metodo}
+                                                                <input type="hidden" name="Pagos[${pagoIndex}].Monto" value="${monto}" />
+                                                                <input type="hidden" name="Pagos[${pagoIndex}].MetodoPago" value="${metodo}" />
+                                                            </div>
+                                                        `;
 
                 $('#listaPagos').append(pagoHtml);
                 pagos.push({ monto, metodo });

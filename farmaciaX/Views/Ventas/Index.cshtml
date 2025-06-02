@@ -72,7 +72,7 @@
                     tbody.append('<tr><td colspan="4">No se encontraron ventas.</td></tr>');
                 } else {
                     data.ventas.forEach(v => {
-                        const fechaReceta = v.fechaReceta ? new Date(v.fechaReceta).toLocaleDateString() : '—';
+                        const fechaReceta = v.fechaReceta ? new Date(v.fechaReceta).toLocaleDateString() : 'Sin receta';
                         const productosTexto = v.productos && v.productos.length > 0
                             ? v.productos.map(p => `${p.nombre} (${p.cantidad})`).join('<br>')
                             : '—';
@@ -149,7 +149,7 @@
                             cargarVentas();
                         },
                         error: function () {
-                            Swal.fire('Error', 'Ocurrió un error al anular la venta.', 'error');
+                            Swal.fire('Error', 'Ocurrió un error al anular la venta o no tiene permisos para hacerlo.', 'error');
                         }
                     });
                 }

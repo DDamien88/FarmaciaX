@@ -4,19 +4,19 @@ using MySqlConnector;
 
 namespace farmaciaX.Models
 {
-    public class RepositorioRecetaProductos : RepositorioBase, IRepositorioRecetaProductos
+    public class RepositorioRecetaProducto : RepositorioBase, IRepositorioRecetaProducto
     {
         private readonly string connectionString;
         private readonly IRepositorioReceta_Medica repositorioReceta_Medica;
         private readonly DataContext context;
-        public RepositorioRecetaProductos(IConfiguration configuration, IRepositorioReceta_Medica repositorioReceta_Medica, DataContext context) : base(configuration)
+        public RepositorioRecetaProducto(IConfiguration configuration, IRepositorioReceta_Medica repositorioReceta_Medica, DataContext context) : base(configuration)
         {
             connectionString = configuration.GetConnectionString("MySql");
             this.repositorioReceta_Medica = repositorioReceta_Medica;
             this.context = context;
         }
 
-        public int Alta(RecetaProductos recetaProductos)
+        public int Alta(RecetaProducto recetaProductos)
         {
             int res = -1;
             using (var connection = new MySqlConnection(connectionString))
@@ -37,6 +37,7 @@ namespace farmaciaX.Models
             }
             return res;
         }
+
 
         public List<Productos> ObtenerTodos()
         {
@@ -73,9 +74,9 @@ namespace farmaciaX.Models
 
 
 
-        public List<RecetaProductos> ObtenerPorReceta(int recetaId)
+        public List<RecetaProducto> ObtenerPorReceta(int recetaId)
         {
-            var lista = new List<RecetaProductos>();
+            var lista = new List<RecetaProducto>();
 
             using (var connection = new MySqlConnection(connectionString))
             {
@@ -95,7 +96,7 @@ namespace farmaciaX.Models
                     {
                         while (reader.Read())
                         {
-                            lista.Add(new RecetaProductos
+                            lista.Add(new RecetaProducto
                             {
                                 RecetaId = recetaId,
                                 ProductoId = reader.GetInt32("ProductoId"),
@@ -141,9 +142,9 @@ namespace farmaciaX.Models
             }
         }
 
-        public List<RecetaProductos> ObtenerRecetasYProductos()
+        public List<RecetaProducto> ObtenerRecetasYProductos()
         {
-            var recetasProductos = new List<RecetaProductos>();
+            var recetasProductos = new List<RecetaProducto>();
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"
@@ -183,7 +184,7 @@ namespace farmaciaX.Models
                             Fecha_Vencimiento = reader.GetDateTime("Fecha_Vencimiento")
                         };
 
-                        recetasProductos.Add(new RecetaProductos
+                        recetasProductos.Add(new RecetaProducto
                         {
                             RecetaId = receta.Id,
                             ProductoId = producto.Id,
@@ -197,6 +198,7 @@ namespace farmaciaX.Models
             }
             return recetasProductos;
         }
+
 
 
 

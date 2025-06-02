@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 namespace farmaciaX.Models
 {
     [Table("recetaproductos")]
-    public class RecetaProductos
+    public class RecetaProducto
     {
         public int RecetaId { get; set; }
         public Receta_Medica Receta { get; set; }

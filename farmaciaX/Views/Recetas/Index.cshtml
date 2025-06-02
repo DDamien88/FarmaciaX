@@ -3,13 +3,14 @@
 }
 
 <h1>Listado de Recetas</h1>
-
+@Html.AntiForgeryToken()
 <div class="mb-3">
     <input type="text" id="buscarRecetas" class="form-control" placeholder="Buscar por cliente o médico..." />
 </div>
 
 <p>
     <a asp-action="Create" class="btn btn-success">Agregar nueva receta</a>
+<p><mark><kbd>Si comete un error al crear una receta "Elimine" y vuelva a generarla.</kbd></mark></p>
 </p>
 
 <table class="table table-bordered" id="tablaRecetas">
@@ -21,6 +22,8 @@
             <th>Fecha Emisión</th>
             <th>Fecha Vencimiento</th>
             <th>Imagen</th>
+            <th>Producto(s)</th>
+            <th>Cantidad</th>
             <th>Activo</th>
             <th>Acciones</th>
         </tr>
@@ -34,6 +37,8 @@
 
 
 @section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         let paginaActual = 1;
@@ -55,24 +60,28 @@
                         const imagen = receta.imgReceta
                             ? `<img src="/Uploads/Recetas/${receta.imgReceta}" alt="Receta" style="height: 50px;" />`
                             : 'Sin imagen';
-
+                        const productosHTML = receta.productos.map(p => `<div>${p.nombre} (${p.cantidad})</div>`).join("");
                         tbody.append(`
-                                    <tr>
-                                        <td>${receta.cliente}</td>
-                                        <td>${receta.medico}</td>
-                                        <td>${receta.fechaEmision}</td>
-                                        <td>${receta.fechaVencimiento}</td>
-                                        <td>${imagen}</td>
-                                        <td>${receta.activo ? "Sí" : "Procesada"}</td>
-                                        <td>
-                                            <a href="/Recetas/Edit/${receta.id}" class="btn btn-sm btn-warning">Editar</a>
-                                            <a href="/Uploads/Recetas/${receta.imgReceta}" class="btn btn-sm btn-info" target="_blank">Ver receta</a>
-                                            <a href="/Recetas/Activar/${receta.id}" class="btn btn-sm btn-success">Activar</a>
-                                        </td>
-                                    </tr>`);
+                        
+                        
+                                                                <tr>
+                                                                    <td>${receta.cliente}</td>
+                                                                    <td>${receta.medico}</td>
+                                                                    <td>${receta.fechaEmision}</td>
+                                                                    <td>${receta.fechaVencimiento}</td>
+                                                                    <td>${imagen}</td>
+                                                                    <td>${receta.productos.map(p => p.nombre).join(", ")}</td>
+                                                                    <td>${receta.productos.map(p => p.cantidad).join(", ")}</td>
+                                                                    <td>${receta.activo ? "Sí" : "Procesada"}</td>
+                                                                    <td>
+                                                                        <button class="btn btn-sm btn-danger" onclick="eliminarReceta(${receta.id}, ${receta.activo})">Eliminar</button>
+                                                                        <a href="/Uploads/Recetas/${receta.imgReceta}" class="btn btn-sm btn-info" target="_blank">Ver receta</a>
+                                                                        @* <a href="/Recetas/Activar/${receta.id}" class="btn btn-sm btn-success">Activar</a> *@
+                                                                    </td>
+                                                                </tr>}`);
+
                     });
                 }
-
                 // Paginación
                 const paginacion = $('#paginacion');
                 paginacion.empty();
@@ -92,6 +101,43 @@
 
             cargarRecetas();
         });
+
+        function eliminarReceta(id, activo) {
+            if (!activo) {
+                Swal.fire('Receta procesada', 'No se puede eliminar una receta ya procesada.', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: "Esta acción anulará la receta",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, Eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Recetas/Eliminar',
+                        method: 'POST',
+                        data: {
+                            id: id,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function () {
+                            Swal.fire('Anulada', 'La receta ha sido anulada.', 'success');
+                            cargarRecetas();
+                        },
+                        error: function () {
+                            Swal.fire('Error', 'No puede eliminarse porque es parte de una venta, O no tiene permisos para hacerlo.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
     </script>
 
 }

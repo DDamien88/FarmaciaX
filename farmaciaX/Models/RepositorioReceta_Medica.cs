@@ -104,7 +104,7 @@ namespace farmaciaX.Models
                                 Medico = reader.GetString("medico"),
                                 Fecha_Emision = reader.GetDateTime("fecha_emision"),
                                 Fecha_Vencimiento = reader.GetDateTime("fecha_vencimiento"),
-                                ImgReceta = reader.IsDBNull(reader.GetOrdinal("imgReceta")) ? null : reader.GetString("ImgReceta"),
+                                ImgReceta = reader.IsDBNull(reader.GetOrdinal("imgReceta")) ? null : reader.GetString("imgReceta"),
                                 Activo = reader.GetBoolean("Activo")
                             };
                         }
@@ -169,16 +169,15 @@ namespace farmaciaX.Models
                             fecha_vencimiento = @fecha_vencimiento,
                             imgReceta = @imgReceta
                         WHERE id = @id";
-
                 using (var command = new MySqlCommand(sql, connection))
                 {
-                    command.Parameters.AddWithValue("@id", receta.Id);
                     command.Parameters.AddWithValue("@cliente_Id", receta.ClienteId);
                     command.Parameters.AddWithValue("@medico", receta.Medico);
                     command.Parameters.AddWithValue("@fecha_emision", receta.Fecha_Emision);
                     command.Parameters.AddWithValue("@fecha_vencimiento", receta.Fecha_Vencimiento);
-                    command.Parameters.AddWithValue("@imgReceta", receta.ImgReceta ?? (object)DBNull.Value);
-
+                    command.Parameters.AddWithValue("@imgReceta", string.IsNullOrEmpty(receta.ImgReceta) ? DBNull.Value : receta.ImgReceta);
+                    command.Parameters.AddWithValue("@id", receta.Id);
+                    command.CommandType = CommandType.Text;
                     connection.Open();
                     command.ExecuteNonQuery();
                     connection.Close();
@@ -194,9 +193,8 @@ namespace farmaciaX.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"
-                    UPDATE receta_medica SET
-                    Activo=0
-                    WHERE Id = @id";
+                    DELETE FROM recetaproductos WHERE RecetaId = @id;
+                    DELETE FROM receta_medica WHERE Id = @id";
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);
@@ -208,6 +206,7 @@ namespace farmaciaX.Models
             }
             return res;
         }
+
 
         public int Activar(int id)
         {
@@ -294,7 +293,7 @@ namespace farmaciaX.Models
             string sql = @"SELECT r.Id, r.cliente_Id, r.Medico, r.fecha_emision, r.fecha_vencimiento, r.ImgReceta, r.Activo,
             c.Nombre, c.Apellido, c.Dni FROM receta_medica r
             LEFT JOIN clientes c ON r.cliente_Id = c.Id
-            WHERE r.cliente_Id = @id";
+            WHERE r.cliente_Id = @id" + " AND r.Activo = 1";
             using var command = new MySqlCommand(sql, connection);
             command.Parameters.AddWithValue("@id", id);
             connection.Open();
@@ -322,6 +321,16 @@ namespace farmaciaX.Models
             return lista;
         }
 
+
+
+        public List<Receta_Medica> ObtenerTodasConProductos()
+        {
+            return context.Receta
+                .Include(r => r.Cliente)
+                .Include(r => r.RecetaProductos)
+                    .ThenInclude(rp => rp.Producto)
+                .ToList();
+        }
 
 
 

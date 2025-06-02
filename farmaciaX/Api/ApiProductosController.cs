@@ -35,6 +35,13 @@ public class ProductosApiController : ControllerBase
         {
             return BadRequest("La fecha de vencimiento no puede ser menor a la fecha actual.");
         }
+
+
+        if (repo.BuscarPorNombre(p.Nombre.ToLower()) != null)
+        {
+            return BadRequest("El producto ya existe. Lo puede editar en el listado.");
+        }
+
         repo.Alta(p);
         return Ok();
     }
@@ -113,7 +120,6 @@ public class ProductosApiController : ControllerBase
     }*/
 
 
-    //[Route("obtener-todos-los-productos")]
     [HttpGet("obtener-todos-los-productos")]
     public async Task<IActionResult> Buscar(string termino)
     {

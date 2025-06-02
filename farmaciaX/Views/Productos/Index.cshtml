@@ -241,7 +241,7 @@
                 },
                 editarProducto(prod) {
                     this.producto = Object.assign({}, prod);
-                    this.producto.fecha_Vencimiento = this.producto.fecha_Vencimiento.split('T')[0]; // formato yyyy-MM-dd
+                    this.producto.fecha_Vencimiento = this.producto.fecha_Vencimiento.split('T')[0];
                     this.modoEdicion = true;
                 },
                 cancelarEdicion() {

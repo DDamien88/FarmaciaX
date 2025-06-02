@@ -12,5 +12,7 @@ namespace farmaciaX.Models
         IEnumerable<Receta_Medica> BuscarPorTexto(string termino);
         void AltaProductosReceta(int recetaId, List<ProductoRecetado> productos);
         public IList<Receta_Medica> BuscarPorCliente(int id);
+        List<Receta_Medica> ObtenerTodasConProductos();
+
     }
 }

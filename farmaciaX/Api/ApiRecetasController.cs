@@ -12,9 +12,9 @@ public class ApiRecetasController : ControllerBase
 {
     private readonly DataContext context;
     private readonly IRepositorioProductos repositorioProductos;
-    private readonly IRepositorioRecetaProductos repositorioRecetaProductos;
+    private readonly IRepositorioRecetaProducto repositorioRecetaProductos;
 
-    public ApiRecetasController(DataContext context, IRepositorioProductos repositorioProductos, IRepositorioRecetaProductos repositorioRecetaProductos)
+    public ApiRecetasController(DataContext context, IRepositorioProductos repositorioProductos, IRepositorioRecetaProducto repositorioRecetaProductos)
     {
         this.context = context;
         this.repositorioProductos = repositorioProductos;

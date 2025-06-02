@@ -10,5 +10,7 @@ namespace farmaciaX.Models
         int Baja(int id);
         int Activar(int id);
         int ObtenerLista(int pagina, int cantidad);
+        Productos BuscarPorNombre(string nombre);
+        
     }
 }

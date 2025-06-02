@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 
 namespace farmaciaX.Models
 {
@@ -23,13 +22,17 @@ namespace farmaciaX.Models
 
         public Receta_Medica? Receta { get; set; }
 
-        
+
         public List<Pago> Pagos { get; set; } = new List<Pago>();
 
         public int UsuarioAltaId { get; set; }
         public Usuario UsuarioAlta { get; set; }
 
         public bool Activo { get; set; }
+
+        public int? UsuarioBajaId { get; set; }
+        public Usuario UsuarioBaja { get; set; }
+        
         public override string ToString()
         {
             return $"Id: {Id}, Cliente_Id: {Cliente_Id}, Fecha: {Fecha}, Total: {Total}";
