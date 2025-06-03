@@ -4,76 +4,111 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-//namespace farmaciaX.Api;
-[Route("api/[controller]")]
-[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-//[ApiController]
-public class ApiRecetasController : ControllerBase
+namespace farmaciaX.Api
 {
-    private readonly DataContext context;
-    private readonly IRepositorioProductos repositorioProductos;
-    private readonly IRepositorioRecetaProducto repositorioRecetaProductos;
+    [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ApiController]
 
-    public ApiRecetasController(DataContext context, IRepositorioProductos repositorioProductos, IRepositorioRecetaProducto repositorioRecetaProductos)
+    public class ApiRecetasController : ControllerBase
     {
-        this.context = context;
-        this.repositorioProductos = repositorioProductos;
-        this.repositorioRecetaProductos = repositorioRecetaProductos;
-    }
+        private readonly DataContext context;
+        private readonly IRepositorioProductos repositorioProductos;
+        private readonly IRepositorioRecetaProducto repositorioRecetaProductos;
 
-
-
-    [HttpGet("traer-recetas")]
-    public async Task<IActionResult> TraerRecetas()
-    {
-        try
+        public ApiRecetasController(DataContext context, IRepositorioProductos repositorioProductos, IRepositorioRecetaProducto repositorioRecetaProductos)
         {
-            var recetas = repositorioRecetaProductos.ObtenerRecetasYProductos();
-            var json = System.Text.Json.JsonSerializer.Serialize(recetas);
-            return Ok(json);
+            this.context = context;
+            this.repositorioProductos = repositorioProductos;
+            this.repositorioRecetaProductos = repositorioRecetaProductos;
         }
-        catch (Exception ex)
+
+
+
+        [HttpGet("traer-recetas")]
+        public async Task<IActionResult> TraerRecetas()
         {
-            return StatusCode(500, new { mensaje = "Error al obtener las recetas", detalle = ex.Message });
-        }
-    }
-
-
-
-
-
-
-    [HttpGet("{id}/productos")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetRecetaProductos(int id)
-    {
-        try
-        {
-            var receta = await context.Receta
-                .Include(r => r.RecetaProductos)
-                    .ThenInclude(rp => rp.Producto)
-                .FirstOrDefaultAsync(r => r.Activo && r.Id == id);
-
-            if (receta == null)
-                return NotFound();
-
-            return Ok(receta.RecetaProductos.Select(p => new
+            try
             {
-                id = p.Producto.Id,
-                nombre = p.Producto.Nombre,
-                precio = p.Producto.Precio,
-                cantidad = p.Cantidad,
-                laboratorio = p.Producto.Laboratorio,
-                cantidad_Stock = p.Producto.Cantidad_Stock
-            }));
+                var recetas = repositorioRecetaProductos.ObtenerRecetasYProductos();
+                var json = System.Text.Json.JsonSerializer.Serialize(recetas);
+                return Ok(json);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al obtener las recetas", detalle = ex.Message });
+            }
         }
-        catch (Exception ex)
+
+
+
+
+
+
+        [HttpGet("{id}/productos")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetRecetaProductos(int id)
         {
-            return StatusCode(500, new { mensaje = "Error al obtener los productos de la receta", detalle = ex.Message });
+            try
+            {
+                var receta = await context.Receta
+                    .Include(r => r.RecetaProductos)
+                        .ThenInclude(rp => rp.Producto)
+                    .FirstOrDefaultAsync(r => r.Activo && r.Id == id);
+
+                if (receta == null)
+                    return NotFound();
+
+                return Ok(receta.RecetaProductos.Select(p => new
+                {
+                    id = p.Producto.Id,
+                    nombre = p.Producto.Nombre,
+                    precio = p.Producto.Precio,
+                    cantidad = p.Cantidad,
+                    laboratorio = p.Producto.Laboratorio,
+                    cantidad_Stock = p.Producto.Cantidad_Stock
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al obtener los productos de la receta", detalle = ex.Message });
+            }
         }
+
+
+        //GetReceta
+        [HttpGet("recetas")]
+        public async Task<IActionResult> GetReceta()
+        {
+            try
+            {
+                var recetas = await context.Receta
+                    .Include(r => r.RecetaProductos)
+                        .ThenInclude(rp => rp.Producto)
+                    .Select(r => new
+                    {
+                        r.Id,
+                        r.Fecha_Emision,
+                        r.Medico,
+                        Productos = r.RecetaProductos.Select(rp => new
+                        {
+                            rp.Producto.Id,
+                            rp.Producto.Nombre,
+                            rp.Cantidad
+                        })
+                    })
+                    .ToListAsync();
+
+                return Ok(recetas);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al obtener las recetas", detalle = ex.Message });
+            }
+        }
+
+
+
     }
-
-
-
 }
 

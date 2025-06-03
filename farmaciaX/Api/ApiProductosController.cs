@@ -31,6 +31,12 @@ public class ProductosApiController : ControllerBase
         {
             return BadRequest("El precio debe ser mayor que cero.");
         }
+
+        if (p.Cantidad_Stock <= 0)
+        {
+            return BadRequest("La cantidad de stock debe ser mayor que cero.");
+        }
+
         if (p.Fecha_Vencimiento < DateTime.Now)
         {
             return BadRequest("La fecha de vencimiento no puede ser menor a la fecha actual.");
@@ -59,6 +65,12 @@ public class ProductosApiController : ControllerBase
         {
             return BadRequest("El precio debe ser mayor que cero.");
         }
+
+        if (p.Cantidad_Stock <= 0)
+        {
+            return BadRequest("La cantidad de stock debe ser mayor que cero.");
+        }
+
         if (p.Fecha_Vencimiento < DateTime.Now)
         {
             return BadRequest("La fecha de vencimiento no puede ser menor a la fecha actual.");
@@ -99,25 +111,6 @@ public class ProductosApiController : ControllerBase
         return Ok(recetas);
     }
 
-
-    /*[Route("api/productos/por-cliente/{clienteId}")]
-    [HttpGet]
-    public IActionResult ObtenerProductosPorCliente(int clienteId)
-    {
-        var productos = context.Receta
-            .Where(r => r.Cliente_Id == clienteId)
-            .SelectMany(r => r.Cliente_Id == null ? new List<VentaProductos>() : r.VentaProductos)
-            .Select(d => d.Producto)
-            .Distinct()
-            .Select(p => new
-            {
-                id = p.Id,
-                nombre = p.Nombre
-            })
-            .ToList();
-
-        return Ok(productos);
-    }*/
 
 
     [HttpGet("obtener-todos-los-productos")]

@@ -49,17 +49,6 @@ public class HomeController : Controller
         return View();
     }
 
-    // [Authorize]
-    // public async Task<ActionResult> CambiarClaim()
-    // {
-    //     var identity = (ClaimsIdentity)User.Identity;
-    //     identity.RemoveClaim(identity.FindFirst("FullName"));
-    //     identity.AddClaim(new Claim("FullName", "Cosme Fulanito"));
-    //     await HttpContext.SignInAsync(
-    //         CookieAuthenticationDefaults.AuthenticationScheme,
-    //         new ClaimsPrincipal(identity));
-    //     return Redirect(nameof(Seguro));
-    // }
 
     public IActionResult Fecha(int anio, int mes, int dia)
     {
